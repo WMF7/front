@@ -80,20 +80,6 @@ export const useStore = create<Store>((set, get) => ({
     maxPrice: Number.MAX_SAFE_INTEGER,
     sortBy: '',
   },
-  updateProductStock: (productId: string, quantity: number) => {
-    set((state) => ({
-      products: state.products.map((product) =>
-        product.id === productId
-          ? { ...product, stock: Math.max(0, product.stock - quantity) }
-          : product
-      ),
-      filteredProducts: state.filteredProducts.map((product) =>
-        product.id === productId
-          ? { ...product, stock: Math.max(0, product.stock - quantity) }
-          : product
-      ),
-    }));
-  },
   setFilters: (newFilters) => {
     const currentFilters = get().filters;
     const updatedFilters = { ...currentFilters, ...newFilters };
@@ -133,13 +119,25 @@ export const useStore = create<Store>((set, get) => ({
       };
     });
   },
+  updateProductStock: (productId: string, quantity: number) => {
+    set((state) => ({
+      products: state.products.map((product) =>
+        product.id === productId
+          ? { ...product, stock: Math.max(0, product.stock - quantity) }
+          : product
+      ),
+      filteredProducts: state.filteredProducts.map((product) =>
+        product.id === productId
+          ? { ...product, stock: Math.max(0, product.stock - quantity) }
+          : product
+      ),
+    }));
+  },
 
   // Cart
   cart: [],
   addToCart: (product) => {
-    if (product.stock === 0) {
-      return;
-    }
+    if (product.stock === 0) return;
     
     set((state) => {
       const existingItem = state.cart.find((item) => item.id === product.id);
@@ -324,14 +322,25 @@ export const useStore = create<Store>((set, get) => ({
   // Reviews
   reviews: [],
   addReview: async (review) => {
-    const newReview = await ReviewDB.create(review);
-    if (newReview) {
-      set((state) => ({
-        reviews: [...state.reviews, newReview],
-      }));
+    try {
+      const newReview = await ReviewDB.create(review);
+      if (newReview) {
+        set((state) => ({
+          reviews: [...state.reviews, newReview],
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to add review:', error);
+      throw error;
     }
   },
   getProductReviews: async (productId) => {
-    return await ReviewDB.findByProduct(productId);
+    try {
+      const reviews = await ReviewDB.findByProduct(productId);
+      return reviews;
+    } catch (error) {
+      console.error('Failed to get product reviews:', error);
+      return [];
+    }
   },
 }));

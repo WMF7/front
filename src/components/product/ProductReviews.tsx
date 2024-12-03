@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { AddReview } from './AddReview';
+import { Review } from '../../types';
 
 interface ProductReviewsProps {
   productId: string;
@@ -9,11 +10,27 @@ interface ProductReviewsProps {
 
 export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
   const { auth, getProductReviews } = useStore();
-  const reviews = getProductReviews(productId);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleReviewSubmit = () => {
-    setRefreshKey(prev => prev + 1);
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        const productReviews = await getProductReviews(productId);
+        setReviews(productReviews);
+      } catch (error) {
+        console.error('Failed to load reviews:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadReviews();
+  }, [productId, getProductReviews]);
+
+  const handleReviewSubmit = async () => {
+    const updatedReviews = await getProductReviews(productId);
+    setReviews(updatedReviews);
   };
 
   const StarRating = ({ value }: { value: number }) => (
@@ -27,6 +44,14 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
       ))}
     </div>
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6" data-testid="product-reviews">

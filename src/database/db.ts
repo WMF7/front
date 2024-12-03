@@ -4,7 +4,7 @@ import { User, Order, Review } from '../types';
 interface ShopDB extends DBSchema {
   users: {
     key: string;
-    value: User;
+    value: User & { password: string };
     indexes: { 'by-email': string };
   };
   orders: {
@@ -36,7 +36,7 @@ const dbPromise = openDB<ShopDB>('shop-db', 1, {
 });
 
 export const UserDB = {
-  create: async (user: Omit<User, 'id'>) => {
+  create: async (user: Omit<User & { password: string }, 'id'>) => {
     const db = await dbPromise;
     const id = crypto.randomUUID();
     const newUser = { ...user, id };
@@ -52,6 +52,15 @@ export const UserDB = {
   findById: async (id: string) => {
     const db = await dbPromise;
     return await db.get('users', id);
+  },
+
+  update: async (id: string, data: Partial<User>) => {
+    const db = await dbPromise;
+    const user = await db.get('users', id);
+    if (!user) throw new Error('User not found');
+    const updatedUser = { ...user, ...data };
+    await db.put('users', updatedUser);
+    return updatedUser;
   },
 
   delete: async (id: string) => {
@@ -85,6 +94,15 @@ export const OrderDB = {
     return await db.getAllFromIndex('orders', 'by-user', userId);
   },
 
+  update: async (id: string, data: Partial<Order>) => {
+    const db = await dbPromise;
+    const order = await db.get('orders', id);
+    if (!order) throw new Error('Order not found');
+    const updatedOrder = { ...order, ...data, updatedAt: new Date().toISOString() };
+    await db.put('orders', updatedOrder);
+    return updatedOrder;
+  },
+
   delete: async (id: string) => {
     const db = await dbPromise;
     await db.delete('orders', id);
@@ -92,14 +110,10 @@ export const OrderDB = {
 };
 
 export const ReviewDB = {
-  create: async (review: Omit<Review, 'id' | 'createdAt'>) => {
+  create: async (review: Omit<Review, 'id'>) => {
     const db = await dbPromise;
     const id = crypto.randomUUID();
-    const newReview = {
-      ...review,
-      id,
-      createdAt: new Date().toISOString()
-    };
+    const newReview = { ...review, id };
     await db.add('reviews', newReview);
     return newReview;
   },
@@ -114,13 +128,21 @@ export const ReviewDB = {
     return await db.getAllFromIndex('reviews', 'by-product', productId);
   },
 
+  update: async (id: string, data: Partial<Review>) => {
+    const db = await dbPromise;
+    const review = await db.get('reviews', id);
+    if (!review) throw new Error('Review not found');
+    const updatedReview = { ...review, ...data };
+    await db.put('reviews', updatedReview);
+    return updatedReview;
+  },
+
   delete: async (id: string) => {
     const db = await dbPromise;
     await db.delete('reviews', id);
   }
 };
 
-// Function to clean the database (for development/testing)
 export const cleanDatabase = async () => {
   const db = await dbPromise;
   await db.clear('reviews');

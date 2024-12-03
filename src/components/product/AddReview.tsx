@@ -12,15 +12,17 @@ export const AddReview: React.FC<AddReviewProps> = ({ productId, onReviewSubmit 
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { auth, addReview } = useStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth.user) return;
+
     setIsSubmitting(true);
+    setError(null);
 
     try {
-      if (!auth.user) throw new Error('User not authenticated');
-
       await addReview({
         productId,
         userId: auth.user.id,
@@ -34,6 +36,7 @@ export const AddReview: React.FC<AddReviewProps> = ({ productId, onReviewSubmit 
       setRating(5);
       onReviewSubmit();
     } catch (error) {
+      setError('Failed to submit review. Please try again.');
       console.error('Failed to submit review:', error);
     } finally {
       setIsSubmitting(false);
@@ -78,6 +81,12 @@ export const AddReview: React.FC<AddReviewProps> = ({ productId, onReviewSubmit 
           data-testid="review-comment"
         />
       </div>
+
+      {error && (
+        <p className="text-red-600 text-sm" data-testid="review-error">
+          {error}
+        </p>
+      )}
 
       <Button
         type="submit"
