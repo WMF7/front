@@ -1,6 +1,6 @@
 # TestShop - Modern E-commerce Platform
 
-A full-featured e-commerce platform built with React, TypeScript, and modern web technologies.
+A full-featured e-commerce platform built with AI, React, TypeScript, and modern web technologies.
 
 ![TestShop Screenshot](images/homepage.png)
 
