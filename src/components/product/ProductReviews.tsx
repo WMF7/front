@@ -63,7 +63,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
         <div className="bg-gray-50 p-4 rounded-lg text-center">
           <p className="text-gray-600">
             Please{' '}
-            <a href="/login" className="text-blue-600 hover:underline">
+            <a href="/test-shop/login#/login" className="text-blue-600 hover:underline">
               log in
             </a>{' '}
             to write a review.
