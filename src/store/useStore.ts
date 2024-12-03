@@ -248,13 +248,16 @@ export const useStore = create<Store>((set, get) => ({
 
       set((state) => ({
         orders: [...state.orders, order],
+        cart: [], // Clear the cart after successful order
       }));
     }
   },
   getOrders: async () => {
     const { auth } = get();
     if (!auth.user) return [];
-    return await OrderDB.findByUser(auth.user.id);
+    const orders = await OrderDB.findByUser(auth.user.id);
+    set({ orders }); // Update the orders in the store
+    return orders;
   },
 
   // Auth
