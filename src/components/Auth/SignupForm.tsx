@@ -64,9 +64,7 @@ export const SignupForm: React.FC = () => {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(formData.password)) {
-      newErrors.password = 'Password must include uppercase, lowercase, number and special character';
-    }
+    } 
     
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
@@ -84,7 +82,8 @@ export const SignupForm: React.FC = () => {
         await signup(formData.email, formData.password, fullName);
         navigate('/');
       } catch (error) {
-        setErrors({ email: 'Email already exists' });
+	  console.log(error);
+	  setErrors({ email: 'Email already exists' });
       }
     }
   };
